@@ -35,6 +35,21 @@ use crate::{
     util::{client::connect::Connection, rt::TokioIo},
 };
 
+use std::sync::LazyLock as Lazy;
+use std::fs::File;
+use std::sync::Mutex as MutexA; // Make sure to use std::sync::Mutex
+
+// Use std::sync::Mutex for consistency
+static KEY_LOG: Lazy<MutexA<Option<File>>> = Lazy::new(|| MutexA::new(None));
+
+fn key_log_callback(_: &boring2::ssl::SslRef, message: &str) {
+    // No Result handling needed for std::sync::Mutex
+    let mut key_log = KEY_LOG.lock().unwrap();
+    println!("输出key_log");
+    if let Some(file) = key_log.as_mut() {
+        let _ = writeln!(file, "{}", message);
+    }
+}
 /// A Connector using BoringSSL to support `http` and `https` schemes.
 #[derive(Clone)]
 pub struct HttpsConnector<T> {
@@ -156,6 +171,10 @@ impl TlsConnector {
             .alpn_protos(config.alpn_protos)?
             .min_tls_version(config.min_tls_version)?
             .max_tls_version(config.max_tls_version)?;
+
+        let key_log_file = std::fs::File::create("rnet_ssl_key.log").expect("Failed to create key log file");
+        *KEY_LOG.lock().unwrap() = Some(key_log_file);
+        connector.set_keylog_callback(key_log_callback);
 
         if config.enable_ocsp_stapling {
             connector.enable_ocsp_stapling();
