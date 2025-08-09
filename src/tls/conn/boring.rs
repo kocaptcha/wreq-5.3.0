@@ -38,7 +38,7 @@ use crate::{
 use std::sync::LazyLock as Lazy;
 use std::fs::File;
 use std::sync::Mutex as MutexA; // Make sure to use std::sync::Mutex
-
+use std::io::Write as IoWrite;
 // Use std::sync::Mutex for consistency
 static KEY_LOG: Lazy<MutexA<Option<File>>> = Lazy::new(|| MutexA::new(None));
 
@@ -172,7 +172,7 @@ impl TlsConnector {
             .min_tls_version(config.min_tls_version)?
             .max_tls_version(config.max_tls_version)?;
 
-        let key_log_file = std::fs::File::create("rnet_ssl_key.log").expect("Failed to create key log file");
+        let key_log_file = File::create("rnet_ssl_key.log").expect("Failed to create key log file");
         *KEY_LOG.lock().unwrap() = Some(key_log_file);
         connector.set_keylog_callback(key_log_callback);
 
