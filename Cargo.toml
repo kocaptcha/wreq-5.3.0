@@ -136,7 +136,7 @@ linked_hash_set = "0.1"
 
 # tls root certs
 rustls-native-certs = { version = "0.8.0", optional = true }
-webpki-root-certs = { version = "0.26.0", optional = true }
+webpki-root-certs = { version = "1.0.3", optional = true }
 
 ## cookies
 cookie_crate = { version = "0.18", package = "cookie", optional = true }
